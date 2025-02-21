@@ -1,0 +1,34 @@
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LotusXRPCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: lotusxrp-cluster
+
+  LotusXRPTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: lotusxrp-task
+      NetworkMode: awsvpc
+      ContainerDefinitions:
+        - Name: ai-sec
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/lotusxrp-ai-sec:latest
+          PortMappings:
+            - ContainerPort: 5000
+        - Name: vtuber-frontend
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/lotusxrp-vtuber:latest
+          PortMappings:
+            - ContainerPort: 3000
+
+  LotusXRPService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: lotusxrp-service
+      Cluster: !Ref LotusXRPCluster
+      TaskDefinition: !Ref LotusXRPTaskDefinition
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: [subnet-0abcdef1234567890]
