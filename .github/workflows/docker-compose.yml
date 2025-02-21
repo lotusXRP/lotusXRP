@@ -1,0 +1,54 @@
+```yaml
+version: '3.8'
+
+services:
+  ai-sec:
+    build: ./ai-sec
+    ports:
+      - "5000:5000"
+    environment:
+      - XRPL_NODE=wss://s.devnet.rippletest.net:51233
+    networks:
+      - lotus-network
+
+  vtuber-frontend:
+    build: ./vtuber-system
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ai-sec
+    networks:
+      - lotus-network
+
+  blockchain-node:
+    image: xrpllab/validator:latest
+    ports:
+      - "6006:6006"
+    networks:
+      - lotus-network
+
+  safety-dashboard:
+    build: ./safety-dashboard
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgres://user:pass@db:5432/lotusxrp
+    networks:
+      - lotus-network
+
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lotus-network
+
+volumes:
+  postgres_data:
+
+networks:
+  lotus-network:
+    driver: bridge
