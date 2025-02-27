@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LotusXRP - A seamless crypto exchange offering secure, fast, and low-fee transactions. Powered by the Flare Network.">
+  <meta name="author" content="LotusXRP Team">
+  <title>LotusXRP - Seamless Crypto Exchange</title>
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    /* Header Styles */
+    header {
+      background: #1a1a1a;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      animation: fadeIn 1s ease-in-out;
+    }
+    header .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #4caf50;
+      text-transform: uppercase;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+    }
+    nav ul li {
+      margin: 0 15px;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    nav ul li a:hover {
+      color: #4caf50;
+    }
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 70px 20px;
+      background: linear-gradient(135deg, #4caf50, #1e88e5);
+      animation: slideDown 1s ease-in-out;
+    }
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    .hero p {
+      font-size: 20px;
+      margin-bottom: 25px;
+    }
+    .hero button {
+      padding: 10px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: transform 0.2s ease-in-out;
+    }
+    .hero button.primary {
+      background-color: #4caf50;
+      color: #fff;
+    }
+    .hero button.secondary {
+      background-color: transparent;
+      border: 2px solid #fff;
+      color: #fff;
+    }
+    .hero button:hover {
+      transform: scale(1.1);
+    }
+    /* Features Section */
+    .features {
+      padding: 50px 20px;
+      background-color: #1a1a1a;
+    }
+    .features h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 30px;
+      color: #4caf50;
+      animation: fadeIn 1.2s ease-in-out;
+    }
+    .features ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+    }
+    .features ul li {
+      text-align: center;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      width: 30%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transform: translateY(50px);
+      animation: fadeInUp 1s forwards ease-in-out;
+    }
+    .features ul li h3 {
+      font-size: 24px;
+      color: #4caf50;
+      margin-bottom: 15px;
+    }
+    .features ul li p {
+      font-size: 16px;
+    }
+    /* Footer */
+    footer {
+      background: #0f0f0f;
+      color: #aaa;
+      text-align: center;
+      padding: 20px 0;
+    }
+    footer a {
+      color: #4caf50;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    footer small {
+      display: block;
+      margin-top: 10px;
+      color: #666;
+    }
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .features ul li {
+        width: 100%;
+      }
+    }
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">LotusXRP</div>
+    <nav>
+      <ul>
+        <li><a href="#about">About</a
