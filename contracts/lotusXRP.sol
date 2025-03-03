@@ -1,211 +1,64 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@flare/StateConnector.sol"; // Hypothetical import, adjust per Flare docs
 
-/**
- * @title LotusXRP
- * @dev Secure XRP trading platform with TEE attestation
- */
-contract LotusXRP is AccessControl, ReentrancyGuard, Pausable {
-    // Roles
-    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-    
-    // XRP token interface
-    IERC20 public immutable xrpToken;
-    
-    // Trading parameters
-    uint256 public constant MIN_TRADE_SIZE = 100 * 1e6; // 100 XRP minimum
-    uint256 public constant MAX_TRADE_SIZE = 100000 * 1e6; // 100k XRP maximum
-    uint256 public constant TRADE_FEE_BASIS_POINTS = 30; // 0.3% fee
-    
-    // Platform state
-    mapping(address => uint256) public tradingBalances;
-    mapping(bytes32 => bool) public executedTrades;
-    mapping(address => uint256) public lastTradeTimestamp;
-    
-    struct Trade {
-        address trader;
-        uint256 amount;
-        bool isBuy;
-        uint256 price;
-        bytes32 teeAttestationHash;
-        bytes signature;
-        uint256 timestamp;
+contract LotusXRP is ERC20 {
+    address public owner;
+    StateConnector public stateConnector; // Flare's State Connector
+    mapping(bytes32 => bool) public processedTxs; // Track XRPL txs
+    mapping(address => string) public refundAddresses; // Flare -> XRPL address
+    uint256 public dailyMintCap = 100 * 10**18; // 100 XRP/day (18 decimals)
+    uint256 public mintedToday;
+    uint256 public lastReset;
+
+    event MintRequest(bytes32 txHash, address user, uint256 amount);
+    event BurnRequest(address user, uint256 amount, string xrplAddress);
+
+    constructor(address _stateConnector) ERC20("LotusXRP", "LXRP") {
+        owner = msg.sender;
+        stateConnector = StateConnector(_stateConnector);
+        lastReset = block.timestamp;
     }
-    
-    // Events
-    event TradeExecuted(
-        bytes32 indexed tradeId,
-        address indexed trader,
-        uint256 amount,
-        bool isBuy,
-        uint256 price,
-        uint256 timestamp
-    );
-    
-    event TEEVerified(
-        bytes32 indexed attestationHash,
-        address indexed trader,
-        uint256 timestamp
-    );
-    
-    event BalanceUpdated(
-        address indexed trader,
-        uint256 newBalance,
-        bool isDeposit
-    );
 
-    constructor(address _xrpToken, address _admin) {
-        require(_xrpToken != address(0), "Invalid XRP token address");
-        require(_admin != address(0), "Invalid admin address");
-        
-        xrpToken = IERC20(_xrpToken);
-        
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
-        _setupRole(ADMIN_ROLE, _admin);
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
     }
-    
-    /**
-     * @dev Execute XRP trade with TEE attestation
-     */
-    function executeTrade(Trade calldata trade) 
-        external 
-        nonReentrant 
-        whenNotPaused 
-        onlyRole(OPERATOR_ROLE) 
-        returns (bytes32) 
-    {
-        // Validate trade parameters
-        require(trade.amount >= MIN_TRADE_SIZE, "Trade size too small");
-        require(trade.amount <= MAX_TRADE_SIZE, "Trade size too large");
-        require(trade.timestamp + 15 minutes > block.timestamp, "Trade expired");
-        
-        // Generate trade ID
-        bytes32 tradeId = keccak256(abi.encode(
-            trade.trader,
-            trade.amount,
-            trade.isBuy,
-            trade.price,
-            trade.timestamp
-        ));
-        require(!executedTrades[tradeId], "Trade already executed");
-        
-        // Verify TEE attestation
-        require(
-            verifyTEEAttestation(trade.teeAttestationHash, trade.signature),
-            "Invalid TEE attestation"
-        );
-        
-        // Calculate fees
-        uint256 fee = (trade.amount * TRADE_FEE_BASIS_POINTS) / 10000;
-        uint256 netAmount = trade.amount - fee;
-        
-        if (trade.isBuy) {
-            // Handle buy order
-            require(
-                tradingBalances[trade.trader] >= trade.amount,
-                "Insufficient balance"
-            );
-            tradingBalances[trade.trader] -= trade.amount;
-            require(
-                xrpToken.transfer(trade.trader, netAmount),
-                "XRP transfer failed"
-            );
-        } else {
-            // Handle sell order
-            require(
-                xrpToken.transferFrom(trade.trader, address(this), trade.amount),
-                "XRP transfer failed"
-            );
-            tradingBalances[trade.trader] += netAmount;
+
+    // Reset daily cap every 24 hours
+    function resetDailyCap() internal {
+        if (block.timestamp >= lastReset + 1 days) {
+            mintedToday = 0;
+            lastReset = block.timestamp;
         }
-        
-        executedTrades[tradeId] = true;
-        lastTradeTimestamp[trade.trader] = block.timestamp;
-        
-        emit TradeExecuted(
-            tradeId,
-            trade.trader,
-            trade.amount,
-            trade.isBuy,
-            trade.price,
-            block.timestamp
-        );
-        
-        return tradeId;
     }
-    
-    /**
-     * @dev Verify TEE attestation signature
-     */
-    function verifyTEEAttestation(
-        bytes32 attestationHash,
-        bytes memory signature
-    ) 
-        internal 
-        returns (bool) 
-    {
-        // TEE verification logic here
-        // In production, this would integrate with Google Cloud's TEE verification
-        
-        emit TEEVerified(
-            attestationHash,
-            msg.sender,
-            block.timestamp
-        );
-        
-        return true;
+
+    // Mint LotusXRP after verifying XRPL lock
+    function mint(bytes32 xrplTxHash, uint256 amount) external {
+        resetDailyCap();
+        require(!processedTxs[xrplTxHash], "Tx already processed");
+        require(mintedToday + amount <= dailyMintCap, "Daily cap exceeded");
+
+        // Request State Connector to verify XRPL tx (simplified)
+        bool isVerified = stateConnector.requestVerification(xrplTxHash);
+        require(isVerified, "XRPL tx not verified");
+
+        processedTxs[xrplTxHash] = true;
+        mintedToday += amount;
+        _mint(msg.sender, amount);
+        emit MintRequest(xrplTxHash, msg.sender, amount);
     }
-    
-    /**
-     * @dev Deposit trading balance
-     */
-    function deposit() external payable {
-        tradingBalances[msg.sender] += msg.value;
-        
-        emit BalanceUpdated(
-            msg.sender,
-            tradingBalances[msg.sender],
-            true
-        );
+
+    // Burn LotusXRP and log XRPL refund address
+    function burn(uint256 amount, string memory xrplAddress) external {
+        _burn(msg.sender, amount);
+        refundAddresses[msg.sender] = xrplAddress;
+        emit BurnRequest(msg.sender, amount, xrplAddress);
     }
-    
-    /**
-     * @dev Withdraw trading balance
-     */
-    function withdraw(uint256 amount) external nonReentrant {
-        require(tradingBalances[msg.sender] >= amount, "Insufficient balance");
-        
-        tradingBalances[msg.sender] -= amount;
-        
-        (bool success, ) = msg.sender.call{value: amount}("");
-        require(success, "Transfer failed");
-        
-        emit BalanceUpdated(
-            msg.sender,
-            tradingBalances[msg.sender],
-            false
-        );
-    }
-    
-    /**
-     * @dev Emergency controls
-     */
-    function pause() external onlyRole(ADMIN_ROLE) {
-        _pause();
-    }
-    
-    function unpause() external onlyRole(ADMIN_ROLE) {
-        _unpause();
-    }
-    
-    /**
-     * @dev Allow contract to receive XRP
-     */
-    receive() external payable {}
-}
+
+    // Manual unlock by owner (custodial for now)
+    function unlockXRPL(address user) external onlyOwner {
+        string memory xrplAddr = refundAddresses[user];
+        require(bytes(xrplAddr
