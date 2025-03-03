@@ -1,4 +1,4 @@
-# LotusFLR
+# LotusXRP/LOTUSFLR
 
 ![LotusFLR](https://via.placeholder.com/150x50.png?text=LotusFLR+Logo)
 
