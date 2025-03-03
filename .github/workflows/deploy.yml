@@ -1,37 +1,44 @@
 ```yaml
-name: Deploy to AWS
+name: Simplified Deploy
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  test-setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        
+      - name: List directories
+        run: |
+          echo "Repository structure:"
+          ls -la
+          
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build and push AI-Sec image
+          
+      - name: Verify AWS authentication
         run: |
-          docker build -t ai-sec ./ai-sec
-          docker tag ai-sec:latest ${{ steps.login-ecr.outputs.registry }}/lotusxrp-ai-sec:latest
-          docker push ${{ steps.login-ecr.outputs.registry }}/lotusxrp-ai-sec:latest
-
-      - name: Deploy stack
+          aws sts get-caller-identity
+          
+      - name: Check for deployment files
         run: |
-          aws cloudformation deploy \
-            --template-file deploy-template.yml \
-            --stack-name lotusxrp-stack \
-            --capabilities CAPABILITY_IAM
+          if [ -f "deploy-template.yml" ]; then
+            echo "Deploy template found"
+          else
+            echo "Deploy template NOT found"
+            find . -name "deploy*.yml" -type f
+          fi
+          
+          if [ -d "./ai-sec" ]; then
+            echo "AI-sec directory found"
+          else
+            echo "AI-sec directory NOT found"
+          fi
