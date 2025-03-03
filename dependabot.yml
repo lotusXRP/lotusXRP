@@ -1,0 +1,41 @@
+# .github/dependabot.yml
+version: 2
+
+updates:
+  # Maintain dependencies for npm/Yarn
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Optional: Add reviewers/assignees
+    reviewers:
+      - "@your-team-name"
+    assignees:
+      - "@maintainer-name"
+    open-pull-requests-limit: 3
+
+  # Maintain Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain Java dependencies
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+
+  # Maintain Docker dependencies
+  # - package-ecosystem: "docker"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+
+  # Add other ecosystems as needed
