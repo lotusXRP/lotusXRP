@@ -1,35 +1,42 @@
-# LotusXRP/LOTUSFLR
 
-![LotusFLR](https://via.placeholder.com/150x50.png?text=LotusFLR+Logo)
+# lotusXRP
 
-A decentralized computation framework for Web3 applications.
+A repository for LotusXRP
 
-## Key Features
+## Features
 
-- 🌟 **Parallel Processing**: Distributed task execution across nodes
-- ⚡ **Low Latency**: Sub-second response times via optimized consensus
-- 🔒 **ZK-SNARKs**: Privacy-preserving computations
-- 🌐 **Cross-chain**: Ethereum, Filecoin, and Polygon support
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
+- Feature 1
+- Feature 2
+- Feature 3
 
 ## Installation
 
-### Prerequisites
-- Node.js v18+
-- Python 3.10+
-- Rust 1.72+
+```bash
+npm install
+# or
+pip install -e .
+```
+
+## Usage
+
+[Usage examples]
+
+## Development
 
 ```bash
-git clone https://github.com/lotusflr/core.git
-cd core
-npm install
-pip install -r requirements.txt
-cargo build --release
+npm run dev
+npm run test
+npm run lint
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Security
+
+See [SECURITY.md](SECURITY.md)
+
+## License
+
+MIT
