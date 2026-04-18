@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 @app.route('/scan', methods=['POST'])
-def scan_transaction():
+def scan_transaction() -> None:
     tx_hash = request.json['tx_hash']
     xrpl_node = os.getenv('XRPL_NODE', 'wss://s.devnet.rippletest.net:51233')
     

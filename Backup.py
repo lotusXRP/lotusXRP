@@ -7,7 +7,7 @@ from datetime import datetime
 SOURCE_DIR = '/path/to/your/project'
 DEST_DIR = '/path/to/backup/location'
 
-def is_in_use(directory):
+def is_in_use(directory) -> None:
     """Check if any file in the directory is currently open or in use."""
     for proc in psutil.process_iter(['pid', 'name', 'open_files']):
         for file in proc.info['open_files'] or []:
@@ -15,7 +15,7 @@ def is_in_use(directory):
                 return True
     return False
 
-def backup_files():
+def backup_files() -> None:
     """Backup the project directory to the destination."""
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     backup_subdir = os.path.join(DEST_DIR, f'{os.path.basename(SOURCE_DIR)}_{timestamp}')
